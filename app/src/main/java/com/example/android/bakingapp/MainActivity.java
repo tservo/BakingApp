@@ -54,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
             List<Ingredient> ingredients = recipe.getIngredients();
             for (int j=0; j < ingredients.size(); j++) {
                 Ingredient ingredient = ingredients.get(j);
-                Timber.d("Name of ingredient: %s", ingredient.getIngredient());
+                Timber.d("Ingredient: %s", ingredient.toString());
             }
 
         }
