@@ -1,9 +1,15 @@
 package com.example.android.bakingapp.data;
 
-import java.text.DecimalFormat;
-import java.util.Locale;
+import android.os.Parcel;
+import android.os.Parcelable;
 
-public class Ingredient {
+import java.text.DecimalFormat;
+
+/**
+ * stores a single ingredient for a recipe. Recipes will likely have more than one of these.
+ * parceled by http://www.parcelabler.com/
+ */
+public class Ingredient implements Parcelable {
     private double quantity;
     private String measure; // maybe redo this field in deserialization?
     private String ingredient;
@@ -84,4 +90,35 @@ public class Ingredient {
         return output;
     }
 
+
+    protected Ingredient(Parcel in) {
+        quantity = in.readDouble();
+        measure = in.readString();
+        ingredient = in.readString();
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeDouble(quantity);
+        dest.writeString(measure);
+        dest.writeString(ingredient);
+    }
+
+    @SuppressWarnings("unused")
+    public static final Parcelable.Creator<Ingredient> CREATOR = new Parcelable.Creator<Ingredient>() {
+        @Override
+        public Ingredient createFromParcel(Parcel in) {
+            return new Ingredient(in);
+        }
+
+        @Override
+        public Ingredient[] newArray(int size) {
+            return new Ingredient[size];
+        }
+    };
 }

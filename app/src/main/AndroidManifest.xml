@@ -19,7 +19,21 @@
         <activity
             android:name=".RecipeDetailActivity"
             android:label="@string/title_activity_recipe_detail"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar"></activity>
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.android.bakingapp.MainActivity" />
+        </activity>
+        <activity
+            android:name=".RecipeStepDetailActivity"
+            android:label="@string/title_activity_recipe_step_detail"
+            android:parentActivityName=".RecipeDetailActivity"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.android.bakingapp.RecipeDetailActivity" />
+        </activity>
     </application>
 
 </manifest>

@@ -1,7 +1,6 @@
 package com.example.android.bakingapp;
 
 import android.content.Context;
-import android.content.SearchRecentSuggestionsProvider;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -14,6 +13,8 @@ import com.example.android.bakingapp.data.Recipe;
 
 import java.util.ArrayList;
 
+import timber.log.Timber;
+
 /**
  * This class owes a lot to https://medium.com/@ramtrg/https-medium-com-ramtrg-mvvm-architecture-components-4d17d3f09bb7
  * From which we will use the MVVM pattern.
@@ -22,13 +23,19 @@ public class RecipeItemsAdapter extends RecyclerView.Adapter<RecipeItemsAdapter.
 
     private Context mContext; // holds context for later use
     private ArrayList<Recipe> mRecipeList; // holds the recipe list that is displayed
+    final private RecipeItemsClickListener mRecipeItemsClickListener;
+
+    public interface RecipeItemsClickListener {
+        void onRecipeItemClick(Recipe recipe);
+    }
 
     /**
      *
      */
-    public RecipeItemsAdapter(Context context, ArrayList<Recipe> recipeArrayList) {
+    public RecipeItemsAdapter(Context context, ArrayList<Recipe> recipeArrayList, RecipeItemsClickListener clickListener) {
         mContext = context;
         mRecipeList = recipeArrayList;
+        mRecipeItemsClickListener = clickListener;
     }
 
     /**
@@ -86,11 +93,27 @@ public class RecipeItemsAdapter extends RecyclerView.Adapter<RecipeItemsAdapter.
             recipeTitle = itemView.findViewById(R.id.recipe_title);
             recipeImage = itemView.findViewById(R.id.recipe_image);
             recipeSummary = itemView.findViewById(R.id.recipe_summary);
+            itemView.setOnClickListener(this);
         }
 
+        /**
+         * Handle click listener on the view
+         * @param v not used
+         */
         @Override
         public void onClick(View v) {
+            int clickedPosition = getAdapterPosition();
+            Recipe recipe;
 
+            // try to get the location of the recipe in the recycler view
+            Timber.d("Position %d", clickedPosition);
+            if (clickedPosition == RecyclerView.NO_POSITION || clickedPosition >= mRecipeList.size()) {
+                recipe = null;
+            } else {
+                recipe = mRecipeList.get(clickedPosition);
+            }
+            // and fire the click!
+            mRecipeItemsClickListener.onRecipeItemClick(recipe);
         }
     }
 }
