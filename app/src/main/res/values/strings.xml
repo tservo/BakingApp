@@ -6,4 +6,6 @@
     <string name="title_activity_recipe_detail">RecipeDetailActivity</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_recipe_step_detail">RecipeStepDetailActivity</string>
+    <string name="RECIPE_TEXT">Recipe:</string>
+    <string name="SAMPLE_INGREDIENT">2 cups flour</string>
 </resources>

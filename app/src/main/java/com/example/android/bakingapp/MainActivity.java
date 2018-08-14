@@ -19,13 +19,11 @@ import timber.log.Timber;
 public class MainActivity extends AppCompatActivity
 {
 
-    private boolean mTwoPane;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mTwoPane = false; // temp flag until two pane is set up
 
         // install Timber Tree
         if (BuildConfig.DEBUG) {
@@ -52,22 +50,6 @@ public class MainActivity extends AppCompatActivity
                 .replace(R.id.recipe_list_container, recipesFragment)
                 .commit();
 
-        // load up information:
-        // get JSON link
-        //
-        // -> JSON
-        // USE gson to handle the resulting JSON
-
-        for(int i=0; i < recipes.size(); i++) {
-            Recipe recipe = recipes.get(i);
-            Timber.d("Name of recipe: %s",recipe.getName());
-            List<Ingredient> ingredients = recipe.getIngredients();
-            for (int j=0; j < ingredients.size(); j++) {
-                Ingredient ingredient = ingredients.get(j);
-                Timber.d("Ingredient: %s", ingredient.toString());
-            }
-
-        }
     }
 
 

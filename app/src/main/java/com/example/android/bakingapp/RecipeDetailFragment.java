@@ -7,12 +7,15 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.example.android.bakingapp.data.Ingredient;
 import com.example.android.bakingapp.data.Recipe;
 
 import java.util.ArrayList;
+
+import timber.log.Timber;
 
 
 /**
@@ -21,7 +24,7 @@ import java.util.ArrayList;
 public class RecipeDetailFragment extends Fragment {
 
     private Recipe mRecipe;
-    private TextView mTvIngredients;
+    private ListView mLvIngredients;
 
     public static final String ARG_RECIPE = "recipe";
 
@@ -64,7 +67,8 @@ public class RecipeDetailFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        mTvIngredients = view.findViewById(R.id.ingredientsView);
+        mLvIngredients = view.findViewById(R.id.ingredients_list_view);
+
         populateRecipeView();
     }
 
@@ -73,18 +77,21 @@ public class RecipeDetailFragment extends Fragment {
      */
     private void populateRecipeView() {
         if (mRecipe == null) {
+            Timber.w("Where's my recipe?");
             return;
         }
-        // else
-        StringBuilder ingredients = new StringBuilder();
-        for (Ingredient ingredient : mRecipe.getIngredients()) {
-            ingredients.append(ingredient.toString());
-            ingredients.append(","); // for now
-        }
-
-        mTvIngredients.setText(ingredients.toString());
-
-
+//        // else
+//        StringBuilder ingredients = new StringBuilder();
+//        for (Ingredient ingredient : mRecipe.getIngredients()) {
+//            ingredients.append(ingredient.toString());
+//            ingredients.append(","); // for now
+//            Timber.d("Ingredient: %s",ingredient);
+//        }
+//
+//        mTvIngredients.setText(ingredients.toString());
+        // create the list adapter and populate the listview
+        IngredientItemsAdapter ingredientAdapter = new IngredientItemsAdapter(getContext(), mRecipe.getIngredients());
+        mLvIngredients.setAdapter(ingredientAdapter);
     }
 }
 
