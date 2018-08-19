@@ -79,13 +79,13 @@ public class Recipe implements Parcelable {
         id = in.readLong();
         name = in.readString();
         if (in.readByte() == 0x01) {
-            ingredients = new ArrayList<Ingredient>();
+            ingredients = new ArrayList<>();
             in.readList(ingredients, Ingredient.class.getClassLoader());
         } else {
             ingredients = null;
         }
         if (in.readByte() == 0x01) {
-            steps = new ArrayList<RecipeStep>();
+            steps = new ArrayList<>();
             in.readList(steps, RecipeStep.class.getClassLoader());
         } else {
             steps = null;

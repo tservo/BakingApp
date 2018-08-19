@@ -17,12 +17,14 @@ import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Random;
 
 import timber.log.Timber;
 
 public class JsonUtilities {
     public static final String RECIPE_URL = "http://go.udacity.com/android-baking-app-json";
+
+    private static Random sRandomGenerator = new Random(); // for testing the widget.
 
     /**
      * https://stackoverflow.com/questions/6349759/using-json-file-in-android-app-resources
@@ -55,21 +57,58 @@ public class JsonUtilities {
     }
 
     /**
-     * wrapper method for getting json string from file or from network
-     * @param context
-     * @return
+     * retrieve json from network
+     * @return the json
      */
-    private static String retrieveJson(Context context) {
-        return retrieveJsonFromFile(context);
+    private static String retrieveJsonFromNetwork() {
+        return null; // TODO: implement network loading
     }
 
-    public static ArrayList<Recipe> retrieveRecipes(Context context) {
-
-        String json = retrieveJson(context);
+    /**
+     * helper method to return the recipes from json already gotten from source
+     * @param json the json
+     * @return ArrayList of Recipes
+     */
+    private static ArrayList<Recipe> retrieveRecipesFromJson(String json) {
         Gson gson = new GsonBuilder().create();
         Timber.d("Json: %s",json);
         // now slurp up the JSON in an attempt to build the recipe collection.
         Type arrayListType = new TypeToken<ArrayList<Recipe>>() {}.getType();
         return gson.fromJson(json, arrayListType);
     }
+
+    /**
+     * from JSON, let's get our recipes from the web.
+     * @return ArrayList of Recipes
+     */
+    public static ArrayList<Recipe> retrieveRecipes() {
+        String json = retrieveJsonFromNetwork();
+        return retrieveRecipesFromJson(json);
+    }
+
+    /**
+     * interface to retrieve recipes from file, passing in a context.
+     * @param context used to retrieve JSON from file. It's not necessary for retrieving from web.
+     * @return ArrayList of Recipes
+     */
+    public static ArrayList<Recipe> retrieveRecipes(Context context) {
+        String json = retrieveJsonFromFile(context);
+        return retrieveRecipesFromJson(json);
+    }
+
+    /**
+     * test method - get a single recipe from file
+     * @param context used to retrieve JSON from file.
+     * @return a single Recipe.
+     */
+    public static Recipe retrieveTestRecipe(Context context) {
+        ArrayList<Recipe> recipes = retrieveRecipes(context);
+
+        if (null == recipes || recipes.size() == 0) {
+            return null; // oops, no recipes to return
+        }
+
+        return recipes.get(sRandomGenerator.nextInt(recipes.size()));
+    }
+
 }

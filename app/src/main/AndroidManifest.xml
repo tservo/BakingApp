@@ -9,6 +9,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light">
+
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop">
@@ -18,6 +19,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity
             android:name=".RecipeDetailActivity"
             android:label="@string/title_activity_recipe_detail"
@@ -28,6 +30,7 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.example.android.bakingapp.MainActivity" />
         </activity>
+
         <activity
             android:name=".RecipeStepDetailActivity"
             android:label="@string/title_activity_recipe_step_detail"
@@ -39,7 +42,7 @@
                 android:value="com.example.android.bakingapp.RecipeDetailActivity" />
         </activity>
 
-        <receiver android:name=".widgets.RecipeIngredientsWidget">
+        <receiver android:name=".widgets.RecipeIngredientsWidgetProvider">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -48,6 +51,9 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/recipe_ingredients_widget_info" />
         </receiver>
+
+        <service android:name=".widgets.RecipeIngredientsWidgetService"
+            android:permission="android.permission.BIND_REMOTEVIEWS"/>
     </application>
 
 </manifest>

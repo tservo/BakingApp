@@ -1,14 +1,15 @@
-package com.example.android.bakingapp;
+package com.example.android.bakingapp.widgets;
 
 import android.content.Context;
-import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
+import android.widget.TextView;
 
+import com.example.android.bakingapp.R;
 import com.example.android.bakingapp.data.Ingredient;
 
 import java.util.ArrayList;
@@ -17,16 +18,16 @@ import timber.log.Timber;
 
 
 /**
- * handles the list view of the ingredients
+ * handles the list view of the ingredients of the widget
  * uses ViewHolder pattern.
  */
-public class IngredientItemsAdapter extends ArrayAdapter<Ingredient> {
+public class WidgetIngredientItemsAdapter extends ArrayAdapter<Ingredient> {
     private ViewHolder mViewHolder;
 
 
 
-    IngredientItemsAdapter(Context context, ArrayList<Ingredient> ingredients) {
-        super(context,R.layout.ingredient_item_view,ingredients);
+    WidgetIngredientItemsAdapter(Context context, ArrayList<Ingredient> ingredients) {
+        super(context,R.layout.widget_ingredient_item_view,ingredients);
 
     }
 
@@ -39,14 +40,14 @@ public class IngredientItemsAdapter extends ArrayAdapter<Ingredient> {
         // have we made our view yet?
         if (null == convertView) {
             LayoutInflater inflater = LayoutInflater.from(getContext());
-            convertView = inflater.inflate(R.layout.ingredient_item_view, parent, false );
+            convertView = inflater.inflate(R.layout.widget_ingredient_item_view, parent, false );
             mViewHolder = new ViewHolder(convertView);
             convertView.setTag(mViewHolder);
         } else {
             mViewHolder = (ViewHolder) convertView.getTag();
         }
 
-        mViewHolder.mCheckBox.setText(getItem(position).toString());
+        mViewHolder.mIngredientView.setText(getItem(position).toString());
 
         return convertView;
     }
@@ -54,10 +55,10 @@ public class IngredientItemsAdapter extends ArrayAdapter<Ingredient> {
 
 
     public static class ViewHolder {
-        CheckBox mCheckBox;
+        TextView mIngredientView;
 
         ViewHolder(View itemView) {
-            mCheckBox = itemView.findViewById(R.id.ingredient_item);
+            mIngredientView = itemView.findViewById(R.id.ingredient_item);
         }
 
     }
