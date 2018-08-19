@@ -8,4 +8,8 @@
     <string name="title_activity_recipe_step_detail">RecipeStepDetailActivity</string>
     <string name="RECIPE_TEXT">Recipe:</string>
     <string name="SAMPLE_INGREDIENT">2 cups flour</string>
+    <string name="recipe_description_text">And you spreekle een die fleur</string>
+    <string name="recipe_step_description">Description</string>
+    <string name="appwidget_text">EXAMPLE</string>
+    <string name="add_widget">Add widget</string>
 </resources>

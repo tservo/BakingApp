@@ -1,9 +1,12 @@
 package com.example.android.bakingapp;
 
+import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +15,7 @@ import android.widget.TextView;
 
 import com.example.android.bakingapp.data.Ingredient;
 import com.example.android.bakingapp.data.Recipe;
+import com.example.android.bakingapp.data.RecipeStep;
 
 import java.util.ArrayList;
 
@@ -24,7 +28,13 @@ import timber.log.Timber;
 public class RecipeDetailFragment extends Fragment {
 
     private Recipe mRecipe;
+
+    // holds a reference to the parent activity as a click listener
+    // the idea is from the Android Me lesson.
+    private RecipeStepItemsAdapter.RecipeStepItemsClickListener mCallback;
+
     private ListView mLvIngredients;
+    private RecyclerView mRvRecipeSteps;
 
     public static final String ARG_RECIPE = "recipe";
 
@@ -43,6 +53,21 @@ public class RecipeDetailFragment extends Fragment {
         args.putParcelable(ARG_RECIPE, recipe);
         fragment.setArguments(args);
         return fragment;
+    }
+
+    // Override onAttach to make sure that the container activity has implemented the callback
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+
+        // This makes sure that the host activity has implemented the callback interface
+        // If not, it throws an exception
+        try {
+            mCallback = (RecipeStepItemsAdapter.RecipeStepItemsClickListener) context;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(context.toString()
+                    + " must implement RecipeStepItemsAdapter.RecipeStepItemsClickListener");
+        }
     }
 
     @Override
@@ -68,6 +93,7 @@ public class RecipeDetailFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         mLvIngredients = view.findViewById(R.id.ingredients_list_view);
+        mRvRecipeSteps = view.findViewById(R.id.recipe_step_recyclerview);
 
         populateRecipeView();
     }
@@ -80,18 +106,19 @@ public class RecipeDetailFragment extends Fragment {
             Timber.w("Where's my recipe?");
             return;
         }
-//        // else
-//        StringBuilder ingredients = new StringBuilder();
-//        for (Ingredient ingredient : mRecipe.getIngredients()) {
-//            ingredients.append(ingredient.toString());
-//            ingredients.append(","); // for now
-//            Timber.d("Ingredient: %s",ingredient);
-//        }
-//
-//        mTvIngredients.setText(ingredients.toString());
+
         // create the list adapter and populate the listview
         IngredientItemsAdapter ingredientAdapter = new IngredientItemsAdapter(getContext(), mRecipe.getIngredients());
         mLvIngredients.setAdapter(ingredientAdapter);
+
+        // and the steps recyclerview
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
+        RecipeStepItemsAdapter recipeStepItemsAdapter = new RecipeStepItemsAdapter(
+                getContext(), mRecipe.getSteps(), mCallback);
+        mRvRecipeSteps.setLayoutManager(layoutManager);
+        mRvRecipeSteps.setAdapter(recipeStepItemsAdapter);
+
     }
+
 }
 

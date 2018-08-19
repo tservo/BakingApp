@@ -47,6 +47,17 @@ public class Recipe implements Parcelable {
         return steps;
     }
 
+    /**
+     * get the ordered recipe step, if it exists
+     * @param step the recipe step at this position
+     * @return the RecipeStep requested, or null if unable to do so.
+     */
+    public RecipeStep getStep(int step) {
+        // guard if steps are null or we don't have a valid step number
+        if (step < 0 || null == steps || steps.size() <= step) return null;
+
+        return steps.get(step);
+    }
 
     public int getServings() {
         return servings;

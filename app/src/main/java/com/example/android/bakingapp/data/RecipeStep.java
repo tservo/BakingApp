@@ -27,7 +27,11 @@ public class RecipeStep implements Parcelable {
     }
 
     public String getShortDescription() {
-        return shortDescription;
+
+        // fallback - prefer shortDescription but use description if necessary.
+        if (null != shortDescription) return shortDescription;
+        if (null != description) return description;
+        return "";
     }
 
     public void setShortDescription(String shortDescription) {
@@ -35,7 +39,10 @@ public class RecipeStep implements Parcelable {
     }
 
     public String getDescription() {
-        return description;
+        // fallback - prefer description but use shortDescription if necessary
+        if (null != description) return description;
+        if (null != shortDescription) return shortDescription;
+        return "";
     }
 
     public void setDescription(String description) {
