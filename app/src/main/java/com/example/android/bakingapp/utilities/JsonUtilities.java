@@ -1,5 +1,6 @@
 package com.example.android.bakingapp.utilities;
 
+import android.arch.persistence.room.TypeConverter;
 import android.content.Context;
 
 import com.example.android.bakingapp.R;
@@ -17,6 +18,7 @@ import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 import timber.log.Timber;
@@ -76,6 +78,37 @@ public class JsonUtilities {
         Type arrayListType = new TypeToken<ArrayList<Recipe>>() {}.getType();
         return gson.fromJson(json, arrayListType);
     }
+
+    // Serializing lists of objects for the database
+    // so we don't need so many tables! Ingredients and steps don't make sense outside
+    // of a recipe context.
+    // https://medium.com/@toddcookevt/android-room-storing-lists-of-objects-766cca57e3f9
+
+    /**
+     * turn a list of objects into json
+     * @param objectList the list of objects, probably ingredients or steps
+     * @param <T> Ingredient | RecipeStep
+     * @return the json.
+     */
+    public static <T> String objectListToJson(List<T> objectList) {
+        Gson gson = new GsonBuilder().create();
+
+        String json = gson.toJson(objectList);
+        Timber.d("Our Json: %s",json);
+        return json;
+
+    }
+
+    public static <T> ArrayList<T> jsonToObjectList(String json) {
+        Gson gson = new GsonBuilder().create();
+
+        if (null == json) return null;
+
+        Type listType = new TypeToken<ArrayList<T>>() {}.getType();
+
+        return gson.fromJson(json, listType);
+    }
+
 
     /**
      * from JSON, let's get our recipes from the web.

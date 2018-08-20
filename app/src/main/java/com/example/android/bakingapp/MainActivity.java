@@ -8,6 +8,7 @@ import android.os.Bundle;
 
 import com.example.android.bakingapp.data.Ingredient;
 import com.example.android.bakingapp.data.Recipe;
+import com.example.android.bakingapp.data.RecipeStep;
 import com.example.android.bakingapp.utilities.JsonUtilities;
 import com.facebook.stetho.Stetho;
 import com.facebook.stetho.okhttp3.StethoInterceptor;
@@ -86,6 +87,16 @@ public class MainActivity extends AppCompatActivity
         ArrayList<Recipe> recipes = JsonUtilities.retrieveRecipes(this);
         RecipesFragment recipesFragment = RecipesFragment.newInstance(recipes);
 
+        // try out our convert methods
+//        Recipe recipe = recipes.get(0);
+//        ArrayList<Ingredient> ingredients = recipe.getIngredients();
+//        ArrayList<RecipeStep> steps = recipe.getSteps();
+//        String jsonI = JsonUtilities.objectListToJson(ingredients);
+//        String jsonS = JsonUtilities.objectListToJson(steps);
+//
+//        // and let's see if these crash
+//        ingredients = JsonUtilities.jsonToObjectList(jsonI);
+//        steps = JsonUtilities.jsonToObjectList(jsonS);
 
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.recipe_list_container, recipesFragment)

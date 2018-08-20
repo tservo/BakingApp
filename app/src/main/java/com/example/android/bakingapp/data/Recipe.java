@@ -1,5 +1,10 @@
 package com.example.android.bakingapp.data;
 
+import android.arch.persistence.room.ColumnInfo;
+import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.Ignore;
+import android.arch.persistence.room.PrimaryKey;
+import android.arch.persistence.room.TypeConverter;
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -10,17 +15,28 @@ import java.util.ArrayList;
  * Represents a recipe.
  * Parceled by http://www.parcelabler.com/
  */
+@Entity(tableName = "recipes")
 public class Recipe implements Parcelable {
 
+    @PrimaryKey(autoGenerate = false)
     private long id;
+
+    @ColumnInfo(name = "name")
     private String name;
+
+    @ColumnInfo(name = "ingredients")
     private ArrayList<Ingredient> ingredients;
+
+    @ColumnInfo(name = "steps")
     private ArrayList<RecipeStep> steps;
+
+    @ColumnInfo(name = "servings")
     private int servings;
+
+    @ColumnInfo(name = "image")
     private String image;
 
-    // default constructor for gson
-    Recipe() { }
+
 
     public long getId() {
         return id;
@@ -41,11 +57,12 @@ public class Recipe implements Parcelable {
     public ArrayList<Ingredient> getIngredients() {
         return ingredients;
     }
-
+    public void setIngredients(ArrayList<Ingredient> ingredients) { this.ingredients = ingredients; }
 
     public ArrayList<RecipeStep> getSteps() {
         return steps;
     }
+    public void setSteps(ArrayList<RecipeStep> steps) { this.steps = steps; }
 
     /**
      * get the ordered recipe step, if it exists
@@ -75,6 +92,10 @@ public class Recipe implements Parcelable {
         this.image = image;
     }
 
+    // default constructor for gson
+    public Recipe() { }
+
+    @Ignore
     protected Recipe(Parcel in) {
         id = in.readLong();
         name = in.readString();

@@ -9,6 +9,12 @@ import android.support.v7.widget.Toolbar;
 
 import com.example.android.bakingapp.data.Recipe;
 import com.example.android.bakingapp.data.RecipeStep;
+import com.example.android.bakingapp.database.AppDatabase;
+import com.example.android.bakingapp.database.RecipeDao;
+import com.example.android.bakingapp.utilities.PreferencesHelper;
+
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import timber.log.Timber;
 
@@ -43,6 +49,38 @@ public class RecipeDetailActivity extends AppCompatActivity
             mRecipe = intent.getParcelableExtra(RecipeDetailFragment.ARG_RECIPE);
             Timber.d("Recipe: %s",mRecipe.toString());
         }
+
+
+        // this should be in a view model but i don't have time to do so
+        // store it in the db
+        final AppDatabase database = AppDatabase.getInstance(this);
+        Executor dbExecutor = Executors.newSingleThreadExecutor();
+
+        // maybe we came from the widget -- pull the current recipe then.
+        if (null == mRecipe) {
+            final long id = PreferencesHelper.getCurrentRecipeId(this);
+            dbExecutor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    mRecipe = database.RecipeDao().getRecipe(id);
+                }
+            });
+
+        } else {
+            // we received our recipe -- make sure it's in the database
+            dbExecutor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    database.RecipeDao().upsertRecipe(mRecipe);
+                }
+            });
+            // mark this recipe as current:
+            PreferencesHelper.setCurrentRecipe(this, mRecipe);
+        }
+
+
+
+
 
         // create the fragment and put it into the activity
         FragmentManager fragmentManager = getSupportFragmentManager();
