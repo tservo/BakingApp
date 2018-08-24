@@ -5,6 +5,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -21,6 +22,8 @@ import java.util.ArrayList;
 
 import timber.log.Timber;
 
+import static com.example.android.bakingapp.RecipeDetailActivity.ARG_RECIPE_STEP;
+
 
 /**
  * A placeholder fragment containing a simple view.
@@ -28,6 +31,8 @@ import timber.log.Timber;
 public class RecipeDetailFragment extends Fragment {
 
     private Recipe mRecipe;
+    private boolean mTwoPane;
+    private int mInitialRecipeStepPosition;
 
     // holds a reference to the parent activity as a click listener
     // the idea is from the Android Me lesson.
@@ -37,6 +42,8 @@ public class RecipeDetailFragment extends Fragment {
     private RecyclerView mRvRecipeSteps;
 
     public static final String ARG_RECIPE = "recipe";
+    private static final String ARG_TWOPANE = "two_pane";
+
 
     public RecipeDetailFragment() {}
 
@@ -47,13 +54,16 @@ public class RecipeDetailFragment extends Fragment {
      * @param recipe Recipe passed in from parent
      * @return A new instance of fragment RecipeDetailFragment.
      */
-    public static RecipeDetailFragment newInstance(Recipe recipe) {
+    public static RecipeDetailFragment newInstance(Recipe recipe, boolean twoPane, int recipeStep) {
         RecipeDetailFragment fragment = new RecipeDetailFragment();
         Bundle args = new Bundle();
         args.putParcelable(ARG_RECIPE, recipe);
+        args.putBoolean(ARG_TWOPANE, twoPane);
+        args.putInt(ARG_RECIPE_STEP, recipeStep);
         fragment.setArguments(args);
         return fragment;
     }
+
 
     // Override onAttach to make sure that the container activity has implemented the callback
     @Override
@@ -77,6 +87,8 @@ public class RecipeDetailFragment extends Fragment {
         // from here we need to unparcel the recipe passed in
         if (getArguments() != null) {
             mRecipe = getArguments().getParcelable(ARG_RECIPE);
+            mTwoPane = getArguments().getBoolean(ARG_TWOPANE);
+            mInitialRecipeStepPosition = getArguments().getInt(ARG_RECIPE_STEP);
         } else {
             mRecipe = null;
         }
@@ -99,6 +111,31 @@ public class RecipeDetailFragment extends Fragment {
     }
 
     /**
+     * Get the new recipe from the parent activity
+     * @param recipe
+     */
+    public void setRecipe(Recipe recipe) {
+        mRecipe = recipe;
+        updateRecipeView();
+    }
+
+    private void updateRecipeView() {
+        if (null == mRecipe) {
+            Timber.w("Where's my recipe?");
+            return;
+        }
+
+        // set up the list/recycler view if need be
+        if (null == mRvRecipeSteps.getAdapter()) {
+            populateRecipeView();
+        } else {
+            // update the adapters
+            ((RecipeStepItemsAdapter) mRvRecipeSteps.getAdapter()).setRecipeSteps(mRecipe.getSteps());
+            ((IngredientItemsAdapter) mLvIngredients.getAdapter()).setIngredients(mRecipe.getIngredients());
+        }
+    }
+
+    /**
      * handles filling up the recipe view as necessary
      */
     private void populateRecipeView() {
@@ -114,7 +151,7 @@ public class RecipeDetailFragment extends Fragment {
         // and the steps recyclerview
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
         RecipeStepItemsAdapter recipeStepItemsAdapter = new RecipeStepItemsAdapter(
-                getContext(), mRecipe.getSteps(), mCallback);
+                getContext(), mRecipe.getSteps(), mCallback, mTwoPane, mInitialRecipeStepPosition);
         mRvRecipeSteps.setLayoutManager(layoutManager);
         mRvRecipeSteps.setAdapter(recipeStepItemsAdapter);
 

@@ -51,7 +51,15 @@ public class IngredientItemsAdapter extends ArrayAdapter<Ingredient> {
         return convertView;
     }
 
-
+    /**
+     * set the model list of ingredients
+     * @param ingredients
+     */
+    public void setIngredients(ArrayList<Ingredient> ingredients) {
+        clear();
+        addAll(ingredients);
+        notifyDataSetChanged();
+    }
 
     public static class ViewHolder {
         CheckBox mCheckBox;

@@ -78,6 +78,26 @@ public class RecipeItemsAdapter extends RecyclerView.Adapter<RecipeItemsAdapter.
         return mRecipeList.size();
     }
 
+    /**
+     * change the recipe list through this method.
+     * @param recipeList
+     */
+    public void setRecipes(ArrayList<Recipe> recipeList) {
+
+        if (null != mRecipeList && null != recipeList) {
+            // we have two ArrayList<Recipe> - merge them
+            mRecipeList.clear();
+            mRecipeList.addAll(recipeList);
+        } else {
+            // either set the member variable to null
+            // or set the member variable to the list.
+            mRecipeList = recipeList;
+        }
+
+        notifyDataSetChanged();
+
+    }
+
     // View Holder
     public class RecipesListViewHolder extends RecyclerView.ViewHolder
         implements View.OnClickListener {

@@ -2,10 +2,16 @@ package com.example.android.bakingapp;
 
 import android.app.Activity;
 import android.app.Application;
+import android.content.Context;
 import android.content.Intent;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.annotation.VisibleForTesting;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.widget.FrameLayout;
 
+import com.example.android.bakingapp.IdlingResource.SimpleIdlingResource;
 import com.example.android.bakingapp.data.Ingredient;
 import com.example.android.bakingapp.data.Recipe;
 import com.example.android.bakingapp.data.RecipeStep;
@@ -15,6 +21,8 @@ import com.facebook.stetho.okhttp3.StethoInterceptor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import okhttp3.OkHttpClient;
 import timber.log.Timber;
@@ -22,52 +30,73 @@ import timber.log.Timber;
 public class MainActivity extends AppCompatActivity
 {
 
-    //private final MyActivityLifecycleCallbacks mCallbacks = new MyActivityLifecycleCallbacks();
+    private ArrayList<Recipe> mRecipeList;
 
-    public static class MyActivityLifecycleCallbacks implements Application.ActivityLifecycleCallbacks {
+    // for testing:]
+    @Nullable
+    private SimpleIdlingResource mSimpleIdlingResource;
 
-        @Override
-        public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-            Timber.i("Class %s: object %s: call %s", activity.getClass().getSimpleName(), activity.toString(),  "onCreate(Bundle)");
+    private void loadRecipes() {
+        // retrieve our data and feed it to
+        Executor networkExecutor = Executors.newSingleThreadExecutor();
+        final Context context = this; // so that we can use in the async call
+
+        // need to let espresso know we're idling.
+        if (mSimpleIdlingResource != null) {
+            mSimpleIdlingResource.setIdleState(false);
+        } else {
+            Timber.i("IdlingResource: null!");
         }
 
-        @Override
-        public void onActivityStarted(Activity activity) {
-            Timber.i("Class %s: object %s: call %s", activity.getClass().getSimpleName(), activity.toString(),  "onStart()");
-        }
+        networkExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
 
-        @Override
-        public void onActivityResumed(Activity activity) {
-            Timber.i("Class %s: object %s: call %s", activity.getClass().getSimpleName(), activity.toString(),  "onResume()");
-        }
+                mRecipeList = JsonUtilities.retrieveRecipes();
 
-        @Override
-        public void onActivityPaused(Activity activity) {
-            Timber.i("Class %s: object %s: call %s", activity.getClass().getSimpleName(), activity.toString(),  "onPause()");
-        }
+                // now let's see if the fragment is ready for us
+                final RecipesFragment fragment = (RecipesFragment) getSupportFragmentManager().findFragmentById(R.id.recipe_list_container);
 
-        @Override
-        public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-            Timber.i("Class %s: object %s: call %s", activity.getClass().getSimpleName(), activity.toString(),  "onSaveInstanceState(Bundle)");
-        }
+                if (null != fragment) {
+                    // have data, send to the fragment
+                    // wow, this is a lot of work!
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Timber.d("Trying to load on fragment");
+                            fragment.setRecipes(mRecipeList);
+                            Timber.i("recipes: %s",(null == mRecipeList) ? "null" : mRecipeList.toString());
+                            if (mSimpleIdlingResource != null) {
+                                mSimpleIdlingResource.setIdleState(true);
+                            }
+                        }
+                    });
 
-        @Override
-        public void onActivityStopped(Activity activity) {
-            Timber.i("Class %s: object %s: call %s", activity.getClass().getSimpleName(), activity.toString(),  "onStop()");
-        }
 
-        @Override
-        public void onActivityDestroyed(Activity activity) {
-            Timber.i("Class %s: object %s: call %s", activity.getClass().getSimpleName(), activity.toString(),  "onDestroy()");
+                }
+            }
+        });
+    }
+
+    /**
+     * in order to test better, set up the network call here so we
+     * can get the idling resource set up first.
+     */
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        Timber.i("Idling Resource is null: %s", String.valueOf(mSimpleIdlingResource == null));
+
+        // attempt to make the loading call here if we can.
+        if (null == mRecipeList) {
+            loadRecipes();
         }
     }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // debugging for the up button crashing on recipedetailactivity
-        //getApplication().registerActivityLifecycleCallbacks(mCallbacks);
-
 
         // install Timber Tree
         if (BuildConfig.DEBUG) {
@@ -82,32 +111,27 @@ public class MainActivity extends AppCompatActivity
 
         setContentView(R.layout.activity_main);
 
-
-        // add our fragments
-        ArrayList<Recipe> recipes = JsonUtilities.retrieveRecipes(this);
-        RecipesFragment recipesFragment = RecipesFragment.newInstance(recipes);
-
-        // try out our convert methods
-//        Recipe recipe = recipes.get(0);
-//        ArrayList<Ingredient> ingredients = recipe.getIngredients();
-//        ArrayList<RecipeStep> steps = recipe.getSteps();
-//        String jsonI = JsonUtilities.objectListToJson(ingredients);
-//        String jsonS = JsonUtilities.objectListToJson(steps);
-//
-//        // and let's see if these crash
-//        ingredients = JsonUtilities.jsonToObjectList(jsonI);
-//        steps = JsonUtilities.jsonToObjectList(jsonS);
-
+        RecipesFragment recipesFragment = RecipesFragment.newInstance(mRecipeList);
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.recipe_list_container, recipesFragment)
                 .commit();
 
+        getSimpleIdlingResource();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        //getApplication().unregisterActivityLifecycleCallbacks(mCallbacks);
+    }
 
+    @VisibleForTesting
+    @NonNull
+    public SimpleIdlingResource getSimpleIdlingResource() {
+        Timber.i("getSimpleIdlingResource()");
+        if (null == mSimpleIdlingResource) {
+            mSimpleIdlingResource = new SimpleIdlingResource();
+        }
+
+        return mSimpleIdlingResource;
     }
 }

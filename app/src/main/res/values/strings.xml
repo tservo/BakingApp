@@ -15,4 +15,6 @@
     <string name="SAMPLE_RECIPE_NAME">Nutella Pie</string>
     <string name="NO_RECIPE">No recipe</string>
     <string name="PREF_CURRENT_RECIPE">current_recipe</string>
+    <string name="NETWORK_ERROR">Unable to retrieve recipes</string>
+    <string name="LOADING_RECIPES">Loading Recipes...</string>
 </resources>

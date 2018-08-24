@@ -1,7 +1,9 @@
 package com.example.android.bakingapp;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.support.annotation.NonNull;
+import android.support.v4.view.ViewPager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,7 +20,13 @@ public class RecipeStepItemsAdapter extends RecyclerView.Adapter<RecipeStepItems
 
     private Context mContext;
     private ArrayList<RecipeStep> mRecipeSteps;
+    private boolean mHighlightSelections;
+
     final private RecipeStepItemsClickListener mClickListener;
+
+
+    // https://stackoverflow.com/questions/27194044/how-to-properly-highlight-selected-item-on-recyclerview
+    private int mFocusedItem;
 
     public interface RecipeStepItemsClickListener {
         void onRecipeStepItemClick(RecipeStep recipeStep, int clickPosition);
@@ -29,10 +37,14 @@ public class RecipeStepItemsAdapter extends RecyclerView.Adapter<RecipeStepItems
      * @param recipeSteps the list of recipe steps to show in the list
      */
     public RecipeStepItemsAdapter(Context context, ArrayList<RecipeStep> recipeSteps,
-                                  RecipeStepItemsClickListener clickListener) {
+                                  RecipeStepItemsClickListener clickListener,
+                                  boolean highlightSelections,
+                                  int initialRecipeStepPosition) {
         mContext = context;
         mRecipeSteps = recipeSteps;
         mClickListener = clickListener;
+        mHighlightSelections = highlightSelections;
+        mFocusedItem = initialRecipeStepPosition;
     }
 
     @NonNull
@@ -47,9 +59,27 @@ public class RecipeStepItemsAdapter extends RecyclerView.Adapter<RecipeStepItems
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         RecipeStep step = mRecipeSteps.get(position);
+        if (mHighlightSelections) {
+            handleHighlight(holder, (position == mFocusedItem));
+        }
 
         if (null != step) {
            holder.stepDescription.setText(step.getShortDescription());
+        }
+    }
+
+    /**
+     * helper method to handle the highlight of the selected item.
+     * @param holder the viewholder in question
+     * @param isSelected whether or not it should be highlighted
+     */
+    private void handleHighlight(@NonNull ViewHolder holder, boolean isSelected) {
+        if (isSelected) {
+            holder.itemView.setBackgroundColor(Color.BLACK);
+            holder.stepDescription.setTextColor(Color.WHITE);
+        } else {
+            holder.itemView.setBackgroundColor(Color.WHITE);
+            holder.stepDescription.setTextColor(Color.BLACK);
         }
     }
 
@@ -57,6 +87,15 @@ public class RecipeStepItemsAdapter extends RecyclerView.Adapter<RecipeStepItems
     public int getItemCount() {
         if (null == mRecipeSteps) return 0;
         return mRecipeSteps.size();
+    }
+
+    public void setRecipeSteps(ArrayList<RecipeStep> recipeSteps) {
+        // guard against null steps
+
+        if (null == recipeSteps || recipeSteps.size() == 0) return;
+        mRecipeSteps.clear();
+        mRecipeSteps.addAll(recipeSteps);
+        notifyDataSetChanged();
     }
 
     /**
@@ -78,6 +117,7 @@ public class RecipeStepItemsAdapter extends RecyclerView.Adapter<RecipeStepItems
         public void onClick(View v) {
             int clickPosition = getAdapterPosition();
             RecipeStep recipeStep;
+            mFocusedItem = clickPosition;
 
             // make sure we have a valid position
             Timber.d("Position: %d",clickPosition);
@@ -86,6 +126,7 @@ public class RecipeStepItemsAdapter extends RecyclerView.Adapter<RecipeStepItems
             } else {
                 recipeStep = mRecipeSteps.get(clickPosition);
             }
+            notifyDataSetChanged(); // get the highlight to update!
 
             // now fire the listener!
             mClickListener.onRecipeStepItemClick(recipeStep, clickPosition);

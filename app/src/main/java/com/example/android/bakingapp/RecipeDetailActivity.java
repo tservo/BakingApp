@@ -1,5 +1,6 @@
 package com.example.android.bakingapp;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
@@ -10,18 +11,20 @@ import android.support.v7.widget.Toolbar;
 import com.example.android.bakingapp.data.Recipe;
 import com.example.android.bakingapp.data.RecipeStep;
 import com.example.android.bakingapp.database.AppDatabase;
-import com.example.android.bakingapp.database.RecipeDao;
 import com.example.android.bakingapp.utilities.PreferencesHelper;
+import com.example.android.bakingapp.widgets.RecipeUpdatingIntentService;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 import timber.log.Timber;
 
-import static com.example.android.bakingapp.RecipeStepDetailActivity.ARG_RECIPE_STEP_POSITION;
-
 public class RecipeDetailActivity extends AppCompatActivity
     implements RecipeStepItemsAdapter.RecipeStepItemsClickListener {
+
+    public static final String ARG_RECIPE_STEP_POSITION = "recipe_step_position";
+    public static final String ARG_RECIPE_STEP = "recipe_step";
+    public static final String ARG_RECIPE_ID = "recipe_id";
 
     private boolean mTwoPane; // do we have the recipe and step detail activities in the same place?
 
@@ -68,10 +71,12 @@ public class RecipeDetailActivity extends AppCompatActivity
 
         } else {
             // we received our recipe -- make sure it's in the database
+            final Context context = this;
             dbExecutor.execute(new Runnable() {
                 @Override
                 public void run() {
                     database.RecipeDao().upsertRecipe(mRecipe);
+                    RecipeUpdatingIntentService.startActionUpdateRecipeWidgets(context);
                 }
             });
             // mark this recipe as current:
@@ -80,13 +85,12 @@ public class RecipeDetailActivity extends AppCompatActivity
 
 
 
-
-
+        // todo: refactor so we don't unnecessarily create fragments
         // create the fragment and put it into the activity
         FragmentManager fragmentManager = getSupportFragmentManager();
 
         // add the detail fragment, always.
-        RecipeDetailFragment recipeDetailFragment = RecipeDetailFragment.newInstance(mRecipe);
+        RecipeDetailFragment recipeDetailFragment = RecipeDetailFragment.newInstance(mRecipe,mTwoPane,mStepPosition);
         fragmentManager.beginTransaction()
                 .replace(R.id.recipe_detail_container,recipeDetailFragment)
                 .commit();
@@ -99,7 +103,9 @@ public class RecipeDetailActivity extends AppCompatActivity
                 recipeStep = mRecipe.getStep(mStepPosition);
             }
 
-            createRecipeStepDetailFragment(fragmentManager, recipeStep);
+            RecipeStepDetailFragment.setupFragment(getSupportFragmentManager(), mRecipe, mStepPosition,
+                    RecipeStepDetailFragment.ViewMode.TWO_PANE,
+                    R.id.recipe_step_detail_container);
         }
 
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -109,23 +115,12 @@ public class RecipeDetailActivity extends AppCompatActivity
         ActionBar actionBar = getSupportActionBar();
         actionBar.setDisplayHomeAsUpEnabled(true);
         actionBar.setDisplayShowHomeEnabled(true);
-        actionBar.setTitle(getString(R.string.RECIPE_TEXT) + " " + mRecipe.getName());
+
+        String recipeName = (null == mRecipe) ? "No Recipe" : mRecipe.getName();
+        actionBar.setTitle(getString(R.string.RECIPE_TEXT) + " " + recipeName);
 
     }
 
-    /**
-     * helper method to set up the recipe step detail properly.
-     * @param fragmentManager
-     * @param firstStep
-     */
-    private void createRecipeStepDetailFragment(FragmentManager fragmentManager, RecipeStep firstStep) {
-        RecipeStepDetailFragment recipeStepDetailFragment = RecipeStepDetailFragment.newInstance(firstStep);
-        recipeStepDetailFragment.setViewMode(RecipeStepDetailFragment.ViewMode.TWO_PANE);
-
-        fragmentManager.beginTransaction()
-            .replace(R.id.recipe_step_detail_container,recipeStepDetailFragment)
-            .commit();
-    }
 
     /**
      * utility method to determine if there is two panels or not
@@ -146,7 +141,8 @@ public class RecipeDetailActivity extends AppCompatActivity
         mStepPosition = clickPosition;
         if (mTwoPane) {
             // make a step detail fragment!
-            createRecipeStepDetailFragment(getSupportFragmentManager(),recipeStep);
+            RecipeStepDetailFragment.setupFragment(getSupportFragmentManager(), mRecipe, clickPosition,
+                    RecipeStepDetailFragment.ViewMode.TWO_PANE, R.id.recipe_step_detail_container);
         } else {
             // send an intent!
             Intent intent = new Intent(this, RecipeStepDetailActivity.class);

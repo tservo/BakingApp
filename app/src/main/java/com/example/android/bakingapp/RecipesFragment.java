@@ -2,9 +2,9 @@ package com.example.android.bakingapp;
 
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -12,10 +12,10 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import com.example.android.bakingapp.data.Recipe;
 import com.example.android.bakingapp.utilities.DisplayUtilities;
-import com.example.android.bakingapp.utilities.JsonUtilities;
 
 import java.util.ArrayList;
 
@@ -32,7 +32,10 @@ public class RecipesFragment extends Fragment
 
     private ArrayList<Recipe> mRecipes;
 
-    private RecyclerView mRecipesRecyclerView;
+    private TextView mTvLoading;
+    private TextView mTvNetworkError;
+
+    private RecyclerView mRvRecipes;
     private RecipeItemsAdapter mRecipeItemsAdapter;
 
 
@@ -77,20 +80,17 @@ public class RecipesFragment extends Fragment
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View rootView = inflater.inflate(R.layout.fragment_recipes, container, false);
-        setupRecipesRecyclerView(rootView);
-
-        return rootView;
+        return inflater.inflate(R.layout.fragment_recipes, container, false);
     }
 
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        mRvRecipes = view.findViewById(R.id.recipe_card_recyclerview);
+        mTvLoading = view.findViewById(R.id.recipes_loading);
+        mTvNetworkError = view.findViewById(R.id.recipes_network_error);
 
-    /**
-     * helper method to set up the recycler view for this fragment
-     */
-    private void setupRecipesRecyclerView(View rootView) {
         Context context = getContext();
-        mRecipesRecyclerView = rootView.findViewById(R.id.recipe_card_recyclerview);
-
         // let's figure out what layout manager we need
         int numColumns = DisplayUtilities.calculateNoOfColumns(context);
         RecyclerView.LayoutManager layoutManger;
@@ -102,10 +102,39 @@ public class RecipesFragment extends Fragment
             // need multiple columns, use grid layout manager!
             layoutManger = new GridLayoutManager(context, numColumns);
         }
-        mRecipesRecyclerView.setLayoutManager(layoutManger);
 
-        // now the adapter
-        mRecipeItemsAdapter = new RecipeItemsAdapter(context, mRecipes, this );
-        mRecipesRecyclerView.setAdapter(mRecipeItemsAdapter);
+        // we don't have data yet -- get from later.
+        mRecipeItemsAdapter = new RecipeItemsAdapter(context, new ArrayList<Recipe>(), this);
+
+        mRvRecipes.setAdapter(mRecipeItemsAdapter);
+        mRvRecipes.setLayoutManager(layoutManger);
+    }
+
+    /**
+     * set the list of recipes as the model for the fragment
+     *
+     * @param recipes
+     */
+    public void setRecipes(ArrayList<Recipe> recipes) {
+        mRecipes = recipes;
+        updateRecipeListView();
+    }
+
+    /**
+     * get the recipes into the list adapter
+     */
+    private void updateRecipeListView() {
+        // we now know whether we have it or not
+        mTvLoading.setVisibility(View.INVISIBLE);
+        if (null == mRecipes) {
+            // didn't get recipes. let user know
+            mRvRecipes.setVisibility(View.INVISIBLE);
+            mTvNetworkError.setVisibility(View.VISIBLE);
+        } else {
+            mTvNetworkError.setVisibility(View.INVISIBLE);
+            mRvRecipes.setVisibility(View.VISIBLE);
+            mRecipeItemsAdapter.setRecipes(mRecipes);
+        }
+
     }
 }

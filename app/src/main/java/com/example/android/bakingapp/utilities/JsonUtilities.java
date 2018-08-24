@@ -3,11 +3,13 @@ package com.example.android.bakingapp.utilities;
 import android.arch.persistence.room.TypeConverter;
 import android.content.Context;
 
+import com.example.android.bakingapp.IdlingResource.SimpleIdlingResource;
 import com.example.android.bakingapp.R;
 import com.example.android.bakingapp.data.Recipe;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import com.squareup.picasso.Picasso;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -16,18 +18,40 @@ import java.io.InputStreamReader;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.lang.reflect.Array;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import javax.annotation.Nullable;
+
+import retrofit2.Call;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+import retrofit2.http.GET;
 import timber.log.Timber;
 
 public class JsonUtilities {
-    public static final String RECIPE_URL = "http://go.udacity.com/android-baking-app-json";
+    public static interface RecipeWebService {
+        @GET("android-baking-app-json")
+        Call<ArrayList<Recipe>> getRecipes();
+    }
+
+    public static final String RECIPE_URL = "http://go.udacity.com/";
 
     private static Random sRandomGenerator = new Random(); // for testing the widget.
+    private static RecipeWebService sRecipeWebService;
 
+    static {
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(RECIPE_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        sRecipeWebService = retrofit.create(RecipeWebService.class);
+    }
     /**
      * https://stackoverflow.com/questions/6349759/using-json-file-in-android-app-resources
      * @param context
@@ -99,12 +123,10 @@ public class JsonUtilities {
 
     }
 
-    public static <T> ArrayList<T> jsonToObjectList(String json) {
+    public static <T> ArrayList<T> jsonToObjectList(String json, Type listType) {
         Gson gson = new GsonBuilder().create();
 
         if (null == json) return null;
-
-        Type listType = new TypeToken<ArrayList<T>>() {}.getType();
 
         return gson.fromJson(json, listType);
     }
@@ -115,8 +137,22 @@ public class JsonUtilities {
      * @return ArrayList of Recipes
      */
     public static ArrayList<Recipe> retrieveRecipes() {
-        String json = retrieveJsonFromNetwork();
-        return retrieveRecipesFromJson(json);
+        Call<ArrayList<Recipe>> call = sRecipeWebService.getRecipes();
+        Response<ArrayList<Recipe>> response;
+
+
+        try {
+            response = call.execute();
+        } catch (IOException e) {
+            Timber.w("Network Error: %s", e.getMessage());
+            return null;
+        }
+        if (response.isSuccessful()) {
+            return response.body();
+        } else {
+            Timber.w("Response Error: %s",response.errorBody());
+            return null;
+        }
     }
 
     /**

@@ -13,6 +13,8 @@ import android.widget.RemoteViewsService;
 import com.example.android.bakingapp.R;
 import com.example.android.bakingapp.data.Ingredient;
 import com.example.android.bakingapp.data.Recipe;
+import com.example.android.bakingapp.database.AppDatabase;
+import com.example.android.bakingapp.utilities.PreferencesHelper;
 
 import java.util.ArrayList;
 
@@ -60,6 +62,11 @@ class RecipeIngredientsRemoteViewsFactory
 
     @Override
     public void onDataSetChanged() {
+
+        AppDatabase database = AppDatabase.getInstance(mContext);
+        long currentId = PreferencesHelper.getCurrentRecipeId(mContext);
+        mRecipe = database.RecipeDao().getRecipe(currentId);
+
         // now get the ingredients for listing.
         if (null == mRecipe) {
             mIngredients = null;
@@ -84,6 +91,7 @@ class RecipeIngredientsRemoteViewsFactory
         // guard if the position is invalid
         if (null == mIngredients || getCount() <= position) return null;
 
+        Timber.i("mIngredients: %s", mIngredients.toString());
         Ingredient ingredient = mIngredients.get(position);
 
         // and here we put the ingredient into the item

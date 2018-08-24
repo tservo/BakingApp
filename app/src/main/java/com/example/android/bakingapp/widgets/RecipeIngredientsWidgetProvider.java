@@ -11,8 +11,14 @@ import android.widget.RemoteViews;
 
 import com.example.android.bakingapp.MainActivity;
 import com.example.android.bakingapp.R;
+import com.example.android.bakingapp.RecipeDetailActivity;
 import com.example.android.bakingapp.data.Recipe;
+import com.example.android.bakingapp.database.AppDatabase;
 import com.example.android.bakingapp.utilities.JsonUtilities;
+import com.example.android.bakingapp.utilities.PreferencesHelper;
+
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import static com.example.android.bakingapp.RecipeDetailFragment.ARG_RECIPE;
 
@@ -28,7 +34,7 @@ public class RecipeIngredientsWidgetProvider extends AppWidgetProvider {
      * @param context the context of the app
      * @return
      */
-    private static RemoteViews getIngredientsListView(Context context, Recipe recipe, Intent intentRVService) {
+    private static RemoteViews getIngredientsListView(Context context, Intent intentRVService) {
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_recipe_ingredients);
 
         // we want to make the list here
@@ -39,10 +45,9 @@ public class RecipeIngredientsWidgetProvider extends AppWidgetProvider {
     }
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
-                                int appWidgetId) {
+                                Recipe recipe, int appWidgetId) {
 
-        // get the recipe in question.
-        Recipe recipe = JsonUtilities.retrieveTestRecipe(context);
+
 
         // we need the widget's name
         CharSequence widgetText = (recipe == null) ?
@@ -62,30 +67,39 @@ public class RecipeIngredientsWidgetProvider extends AppWidgetProvider {
         intentRVService.setData(Uri.parse(intentRVService.toUri(Intent.URI_INTENT_SCHEME)));
 
         // Construct the RemoteViews object
-        RemoteViews views = getIngredientsListView(context, recipe, intentRVService);
+        RemoteViews views = getIngredientsListView(context, intentRVService);
         views.setTextViewText(R.id.widget_recipe_name, widgetText);
 
 
-        // Create an Intent to launch MainActivity when clicked
-        // we actually want RecipeDetailActivity for the recipe in question
-        // but that requires the recipe to be passed along
-        Intent intent = new Intent(context, MainActivity.class);
+        // Create an Intent to launch RecipeDetailActivity.
+        Intent intent = new Intent(context, RecipeDetailActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(context,0,intent,0);
 
         // and here's the click handler
         views.setOnClickPendingIntent(R.id.widget_recipe_name, pendingIntent);
         // Instruct the widget manager to update the widget
         appWidgetManager.updateAppWidget(appWidgetId, views);
-        // and tell the listview that its data has changed.
-        appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetId, R.id.widget_ingredients_listview);
+    }
+
+    /**
+     * put the recipe in from the intent server
+     * @param context
+     * @param appWidgetManager
+     * @param recipe
+     * @param appWidgetIds
+     */
+    public static void updateRecipeWidgets(Context context, AppWidgetManager appWidgetManager,
+                                      Recipe recipe, int [] appWidgetIds) {
+        // There may be multiple widgets active, so update all of them
+        for (int appWidgetId : appWidgetIds) {
+            updateAppWidget(context, appWidgetManager, recipe, appWidgetId);
+        }
     }
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
-        // There may be multiple widgets active, so update all of them
-        for (int appWidgetId : appWidgetIds) {
-            updateAppWidget(context, appWidgetManager, appWidgetId);
-        }
+        // start the intent service, which handles updating the ui
+        RecipeUpdatingIntentService.startActionUpdateRecipeWidgets(context);
     }
 
     @Override
