@@ -55,14 +55,4 @@
             android:layout_height="wrap_content"
             tools:text="@string/SAMPLE_INGREDIENT"/>
     </LinearLayout>
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="4"
-        android:id="@+id/recipe_step_navigation_container">
-        <ImageView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:src="@color/colorPrimary"/>
-    </FrameLayout>
 </LinearLayout>

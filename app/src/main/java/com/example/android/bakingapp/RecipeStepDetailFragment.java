@@ -12,6 +12,7 @@ import android.support.v4.app.FragmentManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -50,7 +51,6 @@ public class RecipeStepDetailFragment extends Fragment {
     public static final String PLAYER_LAST_CURRENT_WINDOW = "player_last_current_window";
     public static final String PLAYER_PLAY_WHEN_READY = "player_play_when_ready";
 
-    private boolean mTwoPane; // are we in a two-pane environment?
     private ViewMode mViewMode = ViewMode.NORMAL; // default to showing all containers
 
 
@@ -68,10 +68,11 @@ public class RecipeStepDetailFragment extends Fragment {
     private ImageView mStillImageView; // the still image
 
     private LinearLayout mRecipeStepDescriptionContainer; // the description
-    private FrameLayout mRecipeStepNavigationContainer; // the navigation bar
     private TextView mRecipeDescription;
     private TextView mRecipeDetailDescription;
     private TextView mMediaUrl;
+
+
 
     private SimpleExoPlayer mExoPlayer;
     // these flags as suggested by Slack channel.
@@ -80,6 +81,39 @@ public class RecipeStepDetailFragment extends Fragment {
     private boolean mPlayWhenReady = true; //
 
     public RecipeStepDetailFragment() {}
+
+    /**
+     * factory method to get a current fragment if possible, or get a new one otherwise
+     * @param fragmentManager
+     * @param recipe
+     * @param stepPosition
+     * @param viewMode
+     * @return
+     */
+    public static void getNewOrCurrent(FragmentManager fragmentManager,
+                                                           Recipe recipe,
+                                                           int stepPosition,
+                                                           ViewMode viewMode) {
+        RecipeStep recipeStep = (recipe != null) ? recipe.getStep(stepPosition) : null;
+        long recipeId = (recipe != null) ? recipe.getId() : Recipe.INVALID_ID;
+
+        RecipeStepDetailFragment recipeStepDetailFragment =
+                (RecipeStepDetailFragment) fragmentManager.findFragmentById(R.id.recipe_step_detail_container);
+
+        // don't create a new fragment unless we need to
+        if (null == recipeStepDetailFragment ||
+                recipeStepDetailFragment.getRecipeStepPosition() != stepPosition ||
+                recipeStepDetailFragment.getRecipeId() != recipeId) {
+            recipeStepDetailFragment =
+                    RecipeStepDetailFragment.newInstance(recipeStep, stepPosition, recipeId);
+
+            fragmentManager.beginTransaction()
+                    .replace(R.id.recipe_step_detail_container,recipeStepDetailFragment)
+                    .commit();
+        }
+        // and update the view mode -- we might have changed orientation!
+        recipeStepDetailFragment.setViewMode(viewMode);
+    }
 
     /**
      * Use this factory method to create a new instance of
@@ -98,48 +132,7 @@ public class RecipeStepDetailFragment extends Fragment {
         return fragment;
     }
 
-    /**
-     * method that sets up the fragment and reuses it if it already exists
-     * @param fragmentManager passed in from the activity
-     * @param recipe
-     * @param recipeStepPosition
-     */
-    public static void setupFragment(FragmentManager fragmentManager, Recipe recipe, int recipeStepPosition,
-                                     ViewMode viewMode, int resourceId) {
 
-        Long recipeId = recipe.getId();
-        RecipeStepDetailFragment recipeStepDetailFragment;
-
-        // Trying to reuse fragments is proving to be messy, so turning off.
-
-            //    (RecipeStepDetailFragment) fragmentManager.findFragmentById(resourceId);
-
-//        if (null == recipeStepDetailFragment ||
-//                recipeStepDetailFragment.getRecipeId() != recipeId ||
-//                recipeStepDetailFragment.getRecipeStepPosition() != recipeStepPosition ) {
-           //  we need to create a fragment
-            recipeStepDetailFragment =
-                    RecipeStepDetailFragment.newInstance(recipe.getStep(recipeStepPosition),
-                            recipeStepPosition, recipeId);
-            recipeStepDetailFragment.setViewMode(viewMode);
-
-            // add the detail fragment, always.
-            fragmentManager.beginTransaction()
-                    .replace(resourceId,recipeStepDetailFragment)
-                    .commit();
-//        } else {
-//            // we have our fragment, tell it to clean up a bit;
-//            Timber.i("We're reusing this fragment with view mode: %s",viewMode.toString());
-//            recipeStepDetailFragment.setViewMode(viewMode);
-//        }
-
-    }
-
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -175,12 +168,12 @@ public class RecipeStepDetailFragment extends Fragment {
         mStillImageView = view.findViewById(R.id.recipe_step_image_container);
 
         mRecipeStepDescriptionContainer = view.findViewById(R.id.recipe_step_description_container);
-        mRecipeStepNavigationContainer = view.findViewById(R.id.recipe_step_navigation_container);
 
         mRecipeDescription = mRecipeStepDescriptionContainer.findViewById(R.id.recipe_step_description);
         mRecipeDetailDescription = mRecipeStepDescriptionContainer.findViewById(R.id.recipe_step_detail_description);
 
         mMediaUrl = view.findViewById(R.id.temp_store_media_url);
+
 
         removeUnneededContainers();
 
@@ -204,7 +197,9 @@ public class RecipeStepDetailFragment extends Fragment {
      * @param twoPane
      */
     public void setTwoPane(boolean twoPane) {
-        mTwoPane = twoPane;
+        if (twoPane) {
+            setViewMode(ViewMode.TWO_PANE);
+        }
         if (null != mRecipeStepDescriptionContainer) {
             removeUnneededContainers();
         }
@@ -243,17 +238,15 @@ public class RecipeStepDetailFragment extends Fragment {
         switch (mViewMode) {
             case TWO_PANE:
                 // remove the navigation if we have two panes
+                // the navigation is already removed to this is a no-op
                 mRecipeStepDescriptionContainer.setVisibility(View.VISIBLE);
-                mRecipeStepNavigationContainer.setVisibility(View.GONE);
                 break;
             case VIDEO_ONLY:
                 // leave only the video
-                mRecipeStepNavigationContainer.setVisibility(View.GONE);
                 mRecipeStepDescriptionContainer.setVisibility(View.GONE);
                 break;
             default:
                 // show it all
-                mRecipeStepNavigationContainer.setVisibility(View.VISIBLE);
                 mRecipeStepDescriptionContainer.setVisibility(View.VISIBLE);
         }
     }
@@ -281,8 +274,6 @@ public class RecipeStepDetailFragment extends Fragment {
             mExoPlayer = ExoPlayerFactory.newSimpleInstance(context, trackSelector);
             mPlayerView.setPlayer(mExoPlayer);
 
-            // Set the ExoPlayer.EventListener to this activity.
-           // mExoPlayer.addListener(this);
 
             // Prepare the MediaSource.
             String userAgent = Util.getUserAgent(context, "BakingApp");

@@ -18,6 +18,8 @@ import java.util.ArrayList;
 @Entity(tableName = "recipes")
 public class Recipe implements Parcelable {
 
+    public static final long INVALID_ID = -1;
+
     @PrimaryKey(autoGenerate = false)
     private long id;
 

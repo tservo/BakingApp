@@ -17,4 +17,6 @@
     <string name="PREF_CURRENT_RECIPE">current_recipe</string>
     <string name="NETWORK_ERROR">Unable to retrieve recipes</string>
     <string name="LOADING_RECIPES">Loading Recipes...</string>
+    <string name="NAV_PREV"><![CDATA[< Prev]]></string>
+    <string name="NAV_NEXT"><![CDATA[Next >]]></string>
 </resources>

@@ -85,7 +85,6 @@ public class RecipeDetailActivity extends AppCompatActivity
 
 
 
-        // todo: refactor so we don't unnecessarily create fragments
         // create the fragment and put it into the activity
         FragmentManager fragmentManager = getSupportFragmentManager();
 
@@ -97,15 +96,7 @@ public class RecipeDetailActivity extends AppCompatActivity
 
         // and the step detail fragment if we need it
         if (mTwoPane) {
-            // put up the first step as a default.
-            RecipeStep recipeStep = null;
-            if (null != mRecipe) {
-                recipeStep = mRecipe.getStep(mStepPosition);
-            }
-
-            RecipeStepDetailFragment.setupFragment(getSupportFragmentManager(), mRecipe, mStepPosition,
-                    RecipeStepDetailFragment.ViewMode.TWO_PANE,
-                    R.id.recipe_step_detail_container);
+            setUpStepDetailFragment(mRecipe,mStepPosition);
         }
 
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -120,6 +111,8 @@ public class RecipeDetailActivity extends AppCompatActivity
         actionBar.setTitle(getString(R.string.RECIPE_TEXT) + " " + recipeName);
 
     }
+
+
 
 
     /**
@@ -141,8 +134,7 @@ public class RecipeDetailActivity extends AppCompatActivity
         mStepPosition = clickPosition;
         if (mTwoPane) {
             // make a step detail fragment!
-            RecipeStepDetailFragment.setupFragment(getSupportFragmentManager(), mRecipe, clickPosition,
-                    RecipeStepDetailFragment.ViewMode.TWO_PANE, R.id.recipe_step_detail_container);
+            setUpStepDetailFragment(mRecipe,clickPosition);
         } else {
             // send an intent!
             Intent intent = new Intent(this, RecipeStepDetailActivity.class);
@@ -150,6 +142,19 @@ public class RecipeDetailActivity extends AppCompatActivity
             intent.putExtra(ARG_RECIPE_STEP_POSITION, clickPosition);
             startActivity(intent);
         }
+    }
+
+    /**
+     * helper method to set up the step detail fragment if necessary
+     * assumes a two-pane layout, which is the only time the step detail
+     * fragment would be shown
+     * @param recipe
+     * @param stepPosition
+     */
+    private void setUpStepDetailFragment(Recipe recipe, int stepPosition) {
+
+        RecipeStepDetailFragment.getNewOrCurrent(getSupportFragmentManager(),
+                recipe, stepPosition, RecipeStepDetailFragment.ViewMode.TWO_PANE);
     }
 
     @Override
