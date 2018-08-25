@@ -10,6 +10,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.android.bakingapp.data.Recipe;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
@@ -65,7 +66,21 @@ public class RecipeItemsAdapter extends RecyclerView.Adapter<RecipeItemsAdapter.
         Recipe recipe = mRecipeList.get(position);
 
         holder.recipeTitle.setText(recipe.getName());
-        holder.recipeSummary.setText("Number of servings " + String.valueOf(recipe.getServings()));
+        holder.recipeSummary.setText(mContext.getString(R.string.SERVINGS, recipe.getServings()));
+
+        String imageUri = recipe.getImage();
+        if (null != imageUri && !(imageUri.equals(""))) {
+            // attempt to get the image for the recipe
+            Picasso.get()
+                    .load(recipe.getImage())
+                    .error(R.drawable.ic_photo_black_24dp)
+                    .into(holder.recipeImage);
+        } else {
+            // isn't going to work =(
+            holder.recipeImage.setImageResource(R.drawable.ic_photo_black_24dp);
+        }
+;
+
     }
 
     /**

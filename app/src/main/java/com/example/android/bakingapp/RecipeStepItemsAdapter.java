@@ -3,6 +3,8 @@ package com.example.android.bakingapp;
 import android.content.Context;
 import android.graphics.Color;
 import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -74,11 +76,13 @@ public class RecipeStepItemsAdapter extends RecyclerView.Adapter<RecipeStepItems
      * @param isSelected whether or not it should be highlighted
      */
     private void handleHighlight(@NonNull ViewHolder holder, boolean isSelected) {
+        int lightGray = ContextCompat.getColor(mContext, R.color.light_gray);
+
         if (isSelected) {
             holder.itemView.setBackgroundColor(Color.BLACK);
-            holder.stepDescription.setTextColor(Color.WHITE);
+            holder.stepDescription.setTextColor(lightGray);
         } else {
-            holder.itemView.setBackgroundColor(Color.WHITE);
+            holder.itemView.setBackgroundColor(lightGray);
             holder.stepDescription.setTextColor(Color.BLACK);
         }
     }

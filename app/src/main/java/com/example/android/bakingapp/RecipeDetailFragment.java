@@ -3,9 +3,11 @@ package com.example.android.bakingapp;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
+import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -40,9 +42,15 @@ public class RecipeDetailFragment extends Fragment {
 
     private ListView mLvIngredients;
     private RecyclerView mRvRecipeSteps;
+    private TabLayout mRecipeTabLayout;
 
     public static final String ARG_RECIPE = "recipe";
-    private static final String ARG_TWOPANE = "two_pane";
+    public static final String ARG_TWOPANE = "two_pane";
+
+    // for the tab positions.
+    public static final int TAB_RECIPE_STEPS = 0;
+    public static final int TAB_INGREDIENTS = 1;
+
 
 
     public RecipeDetailFragment() {}
@@ -154,6 +162,10 @@ public class RecipeDetailFragment extends Fragment {
                 getContext(), mRecipe.getSteps(), mCallback, mTwoPane, mInitialRecipeStepPosition);
         mRvRecipeSteps.setLayoutManager(layoutManager);
         mRvRecipeSteps.setAdapter(recipeStepItemsAdapter);
+
+        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(getContext(),
+                DividerItemDecoration.VERTICAL);
+        mRvRecipeSteps.addItemDecoration(dividerItemDecoration);
 
     }
 

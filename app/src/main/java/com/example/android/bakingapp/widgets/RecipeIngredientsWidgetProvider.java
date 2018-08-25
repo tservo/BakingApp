@@ -73,9 +73,10 @@ public class RecipeIngredientsWidgetProvider extends AppWidgetProvider {
 
         // Create an Intent to launch RecipeDetailActivity.
         Intent intent = new Intent(context, RecipeDetailActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         PendingIntent pendingIntent = PendingIntent.getActivity(context,0,intent,0);
 
-        // and here's the click handler
+        // and here's the click handler. put it on the whole widget.
         views.setOnClickPendingIntent(R.id.widget_recipe_name, pendingIntent);
         // Instruct the widget manager to update the widget
         appWidgetManager.updateAppWidget(appWidgetId, views);

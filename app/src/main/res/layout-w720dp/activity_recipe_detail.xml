@@ -10,7 +10,7 @@
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="#845151"
+        android:background="@color/TOOLBAR_COLOR"
         app:popupTheme="@style/PopupOverlay" />
 
 
@@ -23,25 +23,17 @@
             android:id="@+id/recipe_detail_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="2"
+            android:layout_weight="3"
             tools:background="@color/colorPrimary">
 
-            <ImageView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:src="@color/colorPrimary" />
         </FrameLayout>
 
         <FrameLayout
             android:id="@+id/recipe_step_detail_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="1">
+            android:layout_weight="2">
 
-            <ImageView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:src="@color/colorAccent" />
         </FrameLayout>
     </LinearLayout>
 

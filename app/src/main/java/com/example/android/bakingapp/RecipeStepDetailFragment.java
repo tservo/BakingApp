@@ -16,6 +16,7 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.example.android.bakingapp.data.Recipe;
@@ -67,10 +68,9 @@ public class RecipeStepDetailFragment extends Fragment {
     private PlayerView mPlayerView; // the exoplayer
     private ImageView mStillImageView; // the still image
 
-    private LinearLayout mRecipeStepDescriptionContainer; // the description
+    private RelativeLayout mRecipeStepDescriptionContainer; // the description
     private TextView mRecipeDescription;
     private TextView mRecipeDetailDescription;
-    private TextView mMediaUrl;
 
 
 
@@ -172,7 +172,6 @@ public class RecipeStepDetailFragment extends Fragment {
         mRecipeDescription = mRecipeStepDescriptionContainer.findViewById(R.id.recipe_step_description);
         mRecipeDetailDescription = mRecipeStepDescriptionContainer.findViewById(R.id.recipe_step_detail_description);
 
-        mMediaUrl = view.findViewById(R.id.temp_store_media_url);
 
 
         removeUnneededContainers();
@@ -264,7 +263,6 @@ public class RecipeStepDetailFragment extends Fragment {
             Context context = getActivity();
 
             // Create an default TrackSelector
-            Handler mainHandler = new Handler();
             BandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
             TrackSelection.Factory videoTrackSelectionFactory =
                     new AdaptiveTrackSelection.Factory(bandwidthMeter);
@@ -298,14 +296,11 @@ public class RecipeStepDetailFragment extends Fragment {
         String stillMedia = mRecipeStep.getThumbnailURL();
 
         if (null != videoMedia && !videoMedia.equals("")) {
-            //mMediaUrl.setText("Video: " + videoMedia);
-            mMediaUrl.setVisibility(View.INVISIBLE);
             mStillImageView.setVisibility(View.INVISIBLE);
             mPlayerView.setVisibility(View.VISIBLE);
             initializePlayer(Uri.parse(videoMedia), mCurrentWindow, mPlaybackPosition, mPlayWhenReady);
 
         } else if (null != stillMedia && !stillMedia.equals("")) {
-            mMediaUrl.setVisibility(View.INVISIBLE);
             mStillImageView.setVisibility(View.VISIBLE);
             mPlayerView.setVisibility(View.INVISIBLE);
 
@@ -315,7 +310,6 @@ public class RecipeStepDetailFragment extends Fragment {
                     .into(mStillImageView);
         } else {
             // no media.
-            mMediaUrl.setVisibility(View.INVISIBLE);
             mStillImageView.setVisibility(View.VISIBLE);
             mPlayerView.setVisibility(View.INVISIBLE);
             mStillImageView.setImageResource(R.drawable.ic_photo_black_24dp);

@@ -1,15 +1,19 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_window"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#09C"
+    android:background="@color/INGREDIENT_LIST_COLOR"
     android:padding="@dimen/widget_margin"
     android:orientation="vertical">
+
     <TextView
+        android:id="@+id/widget_recipe_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/widget_recipe_name"
-        tools:text="@string/SAMPLE_RECIPE_NAME"/>
+        android:textSize="18sp"
+        android:textStyle="bold"
+        tools:text="@string/SAMPLE_RECIPE_NAME" />
     <ListView
         android:id="@+id/widget_ingredients_listview"
         android:layout_width="match_parent"

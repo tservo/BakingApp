@@ -4,9 +4,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.NavUtils;
+import android.support.v4.app.TaskStackBuilder;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.MenuItem;
 
 import com.example.android.bakingapp.data.Recipe;
 import com.example.android.bakingapp.data.RecipeStep;
@@ -66,6 +69,12 @@ public class RecipeDetailActivity extends AppCompatActivity
                 @Override
                 public void run() {
                     mRecipe = database.RecipeDao().getRecipe(id);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            handleFragmentAndToolbar();
+                        }
+                    });
                 }
             });
 
@@ -81,10 +90,42 @@ public class RecipeDetailActivity extends AppCompatActivity
             });
             // mark this recipe as current:
             PreferencesHelper.setCurrentRecipe(this, mRecipe);
+            handleFragmentAndToolbar();
         }
 
 
 
+
+
+    }
+
+
+
+    /**
+     * handle the recipeStep click. It'll either be an intent
+     * or if a two-pane, replace the other fragment!
+     * @param recipeStep - use for the fragment.
+     * @param clickPosition the position we're at -- used for the paging on the next activity
+     */
+    @Override
+    public void onRecipeStepItemClick(RecipeStep recipeStep, int clickPosition) {
+        mStepPosition = clickPosition;
+        if (mTwoPane) {
+            // make a step detail fragment!
+            setUpStepDetailFragment(mRecipe,clickPosition);
+        } else {
+            // send an intent!
+            Intent intent = new Intent(this, RecipeStepDetailActivity.class);
+            intent.putExtra(RecipeDetailFragment.ARG_RECIPE, mRecipe);
+            intent.putExtra(ARG_RECIPE_STEP_POSITION, clickPosition);
+            startActivity(intent);
+        }
+    }
+
+    /**
+     * helper method to be called once we have something in our mRecipe
+     */
+    private void handleFragmentAndToolbar() {
         // create the fragment and put it into the activity
         FragmentManager fragmentManager = getSupportFragmentManager();
 
@@ -109,10 +150,7 @@ public class RecipeDetailActivity extends AppCompatActivity
 
         String recipeName = (null == mRecipe) ? "No Recipe" : mRecipe.getName();
         actionBar.setTitle(getString(R.string.RECIPE_TEXT) + " " + recipeName);
-
     }
-
-
 
 
     /**
@@ -121,27 +159,6 @@ public class RecipeDetailActivity extends AppCompatActivity
      */
     private boolean isTwoPane() {
         return (findViewById(R.id.recipe_step_detail_container) != null);
-    }
-
-    /**
-     * handle the recipeStep click. It'll either be an intent
-     * or if a two-pane, replace the other fragment!
-     * @param recipeStep - use for the fragment.
-     * @param clickPosition the position we're at -- used for the paging on the next activity
-     */
-    @Override
-    public void onRecipeStepItemClick(RecipeStep recipeStep, int clickPosition) {
-        mStepPosition = clickPosition;
-        if (mTwoPane) {
-            // make a step detail fragment!
-            setUpStepDetailFragment(mRecipe,clickPosition);
-        } else {
-            // send an intent!
-            Intent intent = new Intent(this, RecipeStepDetailActivity.class);
-            intent.putExtra(RecipeDetailFragment.ARG_RECIPE, mRecipe);
-            intent.putExtra(ARG_RECIPE_STEP_POSITION, clickPosition);
-            startActivity(intent);
-        }
     }
 
     /**
@@ -170,4 +187,35 @@ public class RecipeDetailActivity extends AppCompatActivity
         super.onRestoreInstanceState(savedInstanceState);
     }
 
+    /**
+     * useful for getting up button to work with the widget to return to the recipes page.
+     * from https://developer.android.com/training/implementing-navigation/ancestral
+     */
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        Timber.i("Up has been called");
+
+        switch (item.getItemId()) {
+            // Respond to the action bar's Up/Home button
+            case android.R.id.home:
+                Intent upIntent = new Intent(this, MainActivity.class);
+                if (NavUtils.shouldUpRecreateTask(this, upIntent)) {
+                    Timber.i("Did we come from widget?");
+                    // we came from the widget so we need to create a back stack
+                    // This activity is NOT part of this app's task, so create a new task
+                    // when navigating up, with a synthesized back stack.
+                    TaskStackBuilder.create(this)
+                            // Add all of this activity's parents to the back stack
+                            .addNextIntentWithParentStack(upIntent)
+                            // Navigate up to the closest parent
+                            .startActivities();
+                } else {
+                    // This activity is part of this app's task, so simply
+                    // navigate up to the logical parent activity.
+                    NavUtils.navigateUpTo(this, upIntent);
+                }
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
 }
